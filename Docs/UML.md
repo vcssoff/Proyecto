@@ -1,6 +1,49 @@
 # Diagrama UML
 
-![Diagrama](Docs/uml_imagen.png)
+# Diagrama de clases
+
+```mermaid
+classDiagram
+    class Usuario {
+        -String nombre
+        -String correo
+        -String contraseña
+        -Date fechaNacimiento
+        -String genero
+        +registrarse()
+        +iniciarSesion()
+        +testEnfermedad()
+    }
+
+    class Medicion {
+        Date fecha
+        double altura
+        double peso
+        int frecuenciaCardiaca
+        double glucosaSangre
+        +agregarDatos()
+        +editarDatos()
+    }
+
+    class Promedio {
+        <<interface>>
+        +calcularCardiaco() double
+        +calcularGlucosa() double
+        +calcularIMC() double
+        +calcularGrafica()
+    }
+
+    class Recomendacion {
+        Recomendacion recomendacion
+        Usuario usuario
+        String mensaje
+        String tipo
+    }
+
+    Usuario "1" --> "*" Medicion
+    Medicion ..> Promedio
+    Medicion --> Recomendacion
+```
 
 ---
 
