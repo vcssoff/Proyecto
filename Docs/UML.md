@@ -1,5 +1,6 @@
 # Diagrama UML
 
+![Diagrama](Docs/uml_imagen.png)
 
 ---
 
