@@ -33,9 +33,6 @@ En resumen, buscamos crear una herramienta simple, visual e intuitiva que permit
 - Mantenibilidad: el código debe estar organizado para facilitar futuras modificaciones y     
   correcciones.
 
-## UML
-
-
 ## Casos de Uso
 
 ### Actores
