@@ -1,5 +1,3 @@
-# Diagrama UML
-
 # Diagrama de clases
 
 ```mermaid
@@ -12,39 +10,45 @@ classDiagram
         -String genero
         +registrarse()
         +iniciarSesion()
-        +testEnfermedad()
     }
 
     class Medicion {
-        Date fecha
-        double altura
-        double peso
-        int frecuenciaCardiaca
-        double glucosaSangre
+        -Date fecha
+        -double altura
+        -double peso
+        -int frecuenciaCardiaca
+        -double glucosaSangre
         +agregarDatos()
         +editarDatos()
     }
 
+    class Recomendacion {
+        -String mensaje
+        -String tipo
+    }
+
     class Promedio {
         <<interface>>
-        +calcularCardiaco() double
-        +calcularGlucosa() double
-        +calcularIMC() double
-        +calcularGrafica()
+        +calcularCardiaco(List~Medicion~ mediciones) double
+        +calcularGlucosa(List~Medicion~ mediciones) double
+        +calcularIMC(List~Medicion~ mediciones) double
+        +calcularGrafica(List~Medicion~ mediciones)
     }
 
-    class Recomendacion {
-        Recomendacion recomendacion
-        Usuario usuario
-        String mensaje
-        String tipo
+    class AnalisisService {
+        +calcularCardiaco(List~Medicion~ mediciones) double
+        +calcularGlucosa(List~Medicion~ mediciones) double
+        +calcularIMC(List~Medicion~ mediciones) double
+        +calcularGrafica(List~Medicion~ mediciones)
+        +generarRecomendaciones(List~Medicion~ mediciones) List~Recomendacion~
     }
 
-    Usuario "1" --> "*" Medicion
-    Medicion ..> Promedio
-    Promedio --> Recomendacion
+    Usuario "1" --> "*" Medicion : registra
+    Usuario "1" --> "*" Recomendacion : recibe
+    AnalisisService ..|> Promedio : implementa
+    AnalisisService ..> Medicion : usa
+    AnalisisService ..> Recomendacion : genera
 ```
-
 ---
 
 ## Casos de Uso
