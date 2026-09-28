@@ -32,23 +32,6 @@ En resumen, buscamos crear una herramienta simple, visual e intuitiva que permit
   definidos para el proyecto.
 - Mantenibilidad: el código debe estar organizado para facilitar futuras modificaciones y     
   correcciones.
-## Stack Tecnológico
-
-#### Lenguajes de código
-| Lenguajes| Utilización |
-| :--- | ---: |
-| Java| Para la estructura del código |
-| MySQL | Estructurar y manejar la base datos|
-
-#### Librerías
-| Librerías | Utilización |
-| :--- | ---: |
-| JDBC| Middleware para conectar Java al servidor con SQL|
-
-#### Infraestructura
-| Infraestructura| Utilización |
-| :--- | ---: |
-| Servercasero| Para pruebas en el desarrollo temprano |
 
 ## UML
 
