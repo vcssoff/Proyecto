@@ -15,3 +15,4 @@
 | Infraestructura| Utilización |
 | :--- | ---: |
 | Servercasero| Para pruebas en el desarrollo temprano |
+| Railway| Para manterner la base de datos final|
