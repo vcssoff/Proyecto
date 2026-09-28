@@ -4,7 +4,7 @@
 flowchart LR
     Usuario(["Usuario"])
 
-    subgraph PC[""]
+    subgraph PC["Programa"]
         Programa["Programa Java"]
     end
 
