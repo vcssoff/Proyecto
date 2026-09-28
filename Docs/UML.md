@@ -42,7 +42,7 @@ classDiagram
 
     Usuario "1" --> "*" Medicion
     Medicion ..> Promedio
-    Medicion --> Recomendacion
+    Promedio --> Recomendacion
 ```
 
 ---
