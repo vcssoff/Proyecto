@@ -3,6 +3,10 @@ Hecho por Manuel Pintaluba, Sofía Cedrés, Rodrigo Alonso y Fabian Guillermo.
 
 ### Descripción del problema y solución:
 
+El problema que busca resolver TuSalud es la dificultad para registrar, organizar y analizar longitudinalmente datos biométricos personales de forma centralizada. Las personas que desean realizar un seguimiento de sus datos biométricos pueden registrar sus mediciones en diferentes lugares, como anotaciones manuales, planillas de cálculo o aplicaciones que no están específicamente adaptadas a sus necesidades.
+
+Esto dificulta consultar el historial de mediciones, comparar registros realizados en diferentes fechas y visualizar la evolución de los datos de forma organizada.
+
 Nuestro objetivo es desarrollar una aplicación que permita a los usuarios registrar y realizar un seguimiento de sus datos biométricos a lo largo del tiempo.
 
 La aplicación permitirá ingresar diferentes datos personales y físicos, almacenarlos y analizarlos para obtener promedios, estadísticas y gráficos que faciliten la visualización del progreso. De esta manera, el usuario podrá comparar sus mediciones actuales con registros anteriores y observar su evolución de forma clara y sencilla.
@@ -10,6 +14,28 @@ La aplicación permitirá ingresar diferentes datos personales y físicos, almac
 Además, el sistema podrá proporcionar recomendaciones generales basadas en los datos registrados, con el objetivo de ayudar al usuario a comprender mejor su progreso y establecer metas personales.
 
 En resumen, buscamos crear una herramienta simple, visual e intuitiva que permita registrar datos, analizar cambios y llevar un control organizado de la evolución del usuario.
+
+## Alcance
+
+El proyecto contempla:
+
+- Registro e inicio de sesión de usuarios.
+- Registro de mediciones biométricas.
+- Consulta y modificación del historial.
+- Cálculo de estadísticas.
+- Visualización mediante gráficos.
+- Comparación entre mediciones.
+- Generación de recomendaciones generales.
+
+El proyecto no pretende realizar diagnósticos médicos ni sustituir la evaluación de profesionales de la salud.
+
+## Alternativas consideradas
+
+Una alternativa considerada fue utilizar una planilla de cálculo para que cada usuario registrara manualmente sus mediciones.
+
+Esta alternativa permite almacenar datos y realizar cálculos básicos, pero requiere que el usuario organice manualmente la información y no proporciona una aplicación integrada con autenticación, historial, gráficos, comparaciones y recomendaciones.
+
+Por este motivo se eligió desarrollar una aplicación propia que centralice estas funcionalidades.
 
 # Marco teórico
 ### Datos biométricos registrados
