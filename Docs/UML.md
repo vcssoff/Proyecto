@@ -8,8 +8,6 @@ classDiagram
         -String contraseña
         -Date fechaNacimiento
         -String genero
-        +registrarse()
-        +iniciarSesion()
     }
 
     class Medicion {
@@ -18,8 +16,6 @@ classDiagram
         -double peso
         -int frecuenciaCardiaca
         -double glucosaSangre
-        +agregarDatos()
-        +editarDatos()
     }
 
     class Recomendacion {
@@ -32,22 +28,53 @@ classDiagram
         +calcularCardiaco(List~Medicion~ mediciones) double
         +calcularGlucosa(List~Medicion~ mediciones) double
         +calcularIMC(List~Medicion~ mediciones) double
-        +calcularGrafica(List~Medicion~ mediciones)
     }
 
     class AnalisisService {
         +calcularCardiaco(List~Medicion~ mediciones) double
         +calcularGlucosa(List~Medicion~ mediciones) double
         +calcularIMC(List~Medicion~ mediciones) double
-        +calcularGrafica(List~Medicion~ mediciones)
         +generarRecomendaciones(List~Medicion~ mediciones) List~Recomendacion~
+        +generarGraficaEvolucion(List~Medicion~ mediciones)
+        +generarGraficaFiltrada(List~Medicion~ mediciones)
+        +compararMediciones(Medicion medicion1, Medicion medicion2)
+    }
+
+    class ComparacionBiometrica {
+        -double diferenciaPeso
+        -double diferenciaIMC
+        -double diferenciaCardiaca
+        -double diferenciaGlucosa
+    }
+
+    class UsuarioDAO {
+        +registrar(Usuario usuario)
+        +iniciarSesion(String correo, String contraseña)
+    }
+
+    class MedicionDAO {
+        +guardar(Medicion medicion)
+        +obtenerPorUsuario(int idUsuario)
+        +actualizar(Medicion medicion)
+        +eliminar(int idMedicion, int idUsuario)
+    }
+
+    class RecomendacionDAO {
+        +guardar(Recomendacion recomendacion)
+        +obtenerPorUsuario(int idUsuario)
     }
 
     Usuario "1" --> "*" Medicion : registra
     Usuario "1" --> "*" Recomendacion : recibe
+
+    UsuarioDAO ..> Usuario : gestiona
+    MedicionDAO ..> Medicion : gestiona
+    RecomendacionDAO ..> Recomendacion : gestiona
+
     AnalisisService ..|> Promedio : implementa
-    AnalisisService ..> Medicion : usa
+    AnalisisService ..> Medicion : analiza
     AnalisisService ..> Recomendacion : genera
+    AnalisisService ..> ComparacionBiometrica : genera
 ```
 ---
 
