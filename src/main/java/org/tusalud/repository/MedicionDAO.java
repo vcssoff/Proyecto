@@ -78,6 +78,30 @@ public class MedicionDAO {
         return lista;
     }
 
+    public boolean actualizar(Medicion m) throws SQLException {
+        String sql = "UPDATE MEDICIONES SET peso = ?, altura = ?, frecuencia_cardiaca = ?, glucosa_sangre = ? WHERE id_medicion = ? AND id_usuario = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            if (m.getPeso() != null) stmt.setDouble(1, m.getPeso());
+            else stmt.setNull(1, Types.DECIMAL);
+
+            if (m.getAltura() != null) stmt.setDouble(2, m.getAltura());
+            else stmt.setNull(2, Types.DECIMAL);
+
+            if (m.getFrecuenciaCardiaca() != null) stmt.setInt(3, m.getFrecuenciaCardiaca());
+            else stmt.setNull(3, Types.INTEGER);
+
+            if (m.getGlucosaSangre() != null) stmt.setDouble(4, m.getGlucosaSangre());
+            else stmt.setNull(4, Types.DECIMAL);
+
+            stmt.setInt(5, m.getIdMedicion());
+            stmt.setInt(6, m.getIdUsuario());
+
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
     public boolean eliminar(int idMedicion, int idUsuario) throws SQLException {
         String sql = "DELETE FROM MEDICIONES WHERE id_medicion = ? AND id_usuario = ?";
         try (Connection conn = DatabaseConnection.getConnection();

@@ -2,10 +2,12 @@ package org.tusalud.ui;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.tusalud.model.ComparacionBiometrica;
 import org.tusalud.model.Medicion;
 import org.tusalud.model.Recomendacion;
 import org.tusalud.model.Usuario;
 import org.tusalud.repository.MedicionDAO;
+import org.tusalud.repository.RecomendacionDAO;
 import org.tusalud.service.AnalisisService;
 
 import javax.swing.*;
@@ -13,32 +15,47 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainFrame extends JFrame {
     private final Usuario usuario;
     private final MedicionDAO medicionDAO = new MedicionDAO();
+    private final RecomendacionDAO recomendacionDAO = new RecomendacionDAO();
     private final AnalisisService analisisService = new AnalisisService();
 
+    private List<Medicion> medicionesCargadas = new ArrayList<>();
+
+    // Componentes de Nueva Medición
     private JTextField txtPeso;
     private JTextField txtAltura;
     private JTextField txtFrecuencia;
     private JTextField txtGlucosa;
 
+    // Componentes de Historial
     private JTable tblHistorial;
     private DefaultTableModel tableModel;
 
+    // Componentes de Estadísticas
     private JLabel lblPromedioCardiaco;
     private JLabel lblPromedioGlucosa;
     private JLabel lblIMC;
-    private JTextArea txtRecomendaciones;
     private JPanel panelGrafico;
+
+    // Componentes de Comparación
+    private JComboBox<String> cbMedicion1;
+    private JComboBox<String> cbMedicion2;
+    private JTextArea txtResultadoComparacion;
+
+    // Componentes de Recomendaciones
+    private JTextArea txtRecomendaciones;
+    private List<Recomendacion> recomendacionesActuales = new ArrayList<>();
 
     public MainFrame(Usuario usuario) {
         this.usuario = usuario;
         setTitle("TuSalud - Monitoreo Biométrico | Usuario: " + usuario.getNombre());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(950, 700);
+        setSize(980, 720);
         setLocationRelativeTo(null);
         initComponents();
         recargarDatos();
@@ -50,13 +67,13 @@ public class MainFrame extends JFrame {
         // Header Superior
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(41, 128, 185));
-        header.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        header.setBorder(BorderFactory.createEmptyBorder(12, 18, 12, 18));
 
-        JLabel title = new JLabel("TuSalud — Panel de Control");
+        JLabel title = new JLabel("TuSalud — Panel de Control Biométrico");
         title.setFont(new Font("SansSerif", Font.BOLD, 18));
         title.setForeground(Color.WHITE);
 
-        JLabel userLabel = new JLabel("Sesión: " + usuario.getNombre() + " (" + usuario.getCorreo() + ")");
+        JLabel userLabel = new JLabel("Sesión activa: " + usuario.getNombre() + " (" + usuario.getCorreo() + ")");
         userLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
         userLabel.setForeground(Color.WHITE);
 
@@ -71,6 +88,7 @@ public class MainFrame extends JFrame {
         tabbedPane.addTab("➕ Nueva Medición", crearPanelNuevaMedicion());
         tabbedPane.addTab("📋 Historial", crearPanelHistorial());
         tabbedPane.addTab("📊 Estadísticas & Gráficos", crearPanelEstadisticas());
+        tabbedPane.addTab("⚖️ Comparación de Fechas", crearPanelComparacion());
         tabbedPane.addTab("💡 Recomendaciones", crearPanelRecomendaciones());
 
         add(tabbedPane, BorderLayout.CENTER);
@@ -83,7 +101,7 @@ public class MainFrame extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        JLabel desc = new JLabel("<html><b>Ingreso de Datos Biométricos</b><br><small>Ingresa uno o más valores para registrar tu medición actual:</small></html>");
+        JLabel desc = new JLabel("<html><b>Ingreso de Datos Biométricos</b><br><small>Ingresa uno o más valores para registrar tu medición:</small></html>");
         desc.setFont(new Font("SansSerif", Font.PLAIN, 14));
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         panel.add(desc, gbc);
@@ -136,19 +154,22 @@ public class MainFrame extends JFrame {
             public boolean isCellEditable(int row, int col) { return false; }
         };
         tblHistorial = new JTable(tableModel);
-        tblHistorial.setRowHeight(22);
+        tblHistorial.setRowHeight(24);
         tblHistorial.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
 
         panel.add(new JScrollPane(tblHistorial), BorderLayout.CENTER);
 
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         JButton btnRefrescar = new JButton("Actualizar");
+        JButton btnEditar = new JButton("Editar Seleccionada");
         JButton btnEliminar = new JButton("Eliminar Seleccionada");
 
         btnRefrescar.addActionListener(e -> recargarDatos());
+        btnEditar.addActionListener(e -> editarSeleccionada());
         btnEliminar.addActionListener(e -> eliminarSeleccionada());
 
         btnPanel.add(btnRefrescar);
+        btnPanel.add(btnEditar);
         btnPanel.add(btnEliminar);
         panel.add(btnPanel, BorderLayout.SOUTH);
 
@@ -159,7 +180,6 @@ public class MainFrame extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Panel de métricas resumidas
         JPanel metricas = new JPanel(new GridLayout(1, 3, 15, 0));
         metricas.setBorder(BorderFactory.createTitledBorder("Promedios y Métricas"));
 
@@ -185,13 +205,51 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
+    private JPanel crearPanelComparacion() {
+        JPanel panel = new JPanel(new BorderLayout(15, 15));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JPanel selectores = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        selectores.setBorder(BorderFactory.createTitledBorder("Seleccionar Mediciones a Comparar"));
+
+        cbMedicion1 = new JComboBox<>();
+        cbMedicion2 = new JComboBox<>();
+        JButton btnComparar = new JButton("Comparar Evolución");
+        btnComparar.setBackground(new Color(41, 128, 185));
+        btnComparar.setForeground(Color.WHITE);
+        btnComparar.addActionListener(e -> ejecutarComparacion());
+
+        selectores.add(new JLabel("Medición A:"));
+        selectores.add(cbMedicion1);
+        selectores.add(new JLabel("Medición B:"));
+        selectores.add(cbMedicion2);
+        selectores.add(btnComparar);
+
+        panel.add(selectores, BorderLayout.NORTH);
+
+        txtResultadoComparacion = new JTextArea();
+        txtResultadoComparacion.setEditable(false);
+        txtResultadoComparacion.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        txtResultadoComparacion.setMargin(new Insets(15, 15, 15, 15));
+        panel.add(new JScrollPane(txtResultadoComparacion), BorderLayout.CENTER);
+
+        return panel;
+    }
+
     private JPanel crearPanelRecomendaciones() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
+        JPanel topPanel = new JPanel(new BorderLayout());
         JLabel title = new JLabel("Recomendaciones de Salud Personalizadas");
         title.setFont(new Font("SansSerif", Font.BOLD, 16));
-        panel.add(title, BorderLayout.NORTH);
+
+        JButton btnGuardarBD = new JButton("Guardar Recomendaciones en BD");
+        btnGuardarBD.addActionListener(e -> guardarRecomendacionesEnBD());
+
+        topPanel.add(title, BorderLayout.WEST);
+        topPanel.add(btnGuardarBD, BorderLayout.EAST);
+        panel.add(topPanel, BorderLayout.NORTH);
 
         txtRecomendaciones = new JTextArea();
         txtRecomendaciones.setEditable(false);
@@ -243,6 +301,31 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void editarSeleccionada() {
+        int row = tblHistorial.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Selecciona una fila para editar.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int idMedicion = (int) tableModel.getValueAt(row, 0);
+        Medicion target = null;
+        for (Medicion m : medicionesCargadas) {
+            if (m.getIdMedicion() == idMedicion) {
+                target = m;
+                break;
+            }
+        }
+
+        if (target != null) {
+            EditarMedicionDialog dialog = new EditarMedicionDialog(this, target);
+            dialog.setVisible(true);
+            if (dialog.isActualizado()) {
+                recargarDatos();
+            }
+        }
+    }
+
     private void eliminarSeleccionada() {
         int row = tblHistorial.getSelectedRow();
         if (row < 0) {
@@ -264,14 +347,103 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void ejecutarComparacion() {
+        int idx1 = cbMedicion1.getSelectedIndex();
+        int idx2 = cbMedicion2.getSelectedIndex();
+
+        if (idx1 < 0 || idx2 < 0 || idx1 >= medicionesCargadas.size() || idx2 >= medicionesCargadas.size()) {
+            JOptionPane.showMessageDialog(this, "Selecciona dos mediciones válidas para comparar.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (idx1 == idx2) {
+            JOptionPane.showMessageDialog(this, "Selecciona dos mediciones distintas para realizar una comparación temporal.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Medicion m1 = medicionesCargadas.get(idx1);
+        Medicion m2 = medicionesCargadas.get(idx2);
+
+        ComparacionBiometrica comp = analisisService.compararMediciones(m1, m2);
+        if (comp == null) {
+            txtResultadoComparacion.setText("No se pudo calcular la comparación.");
+            return;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        StringBuilder sb = new StringBuilder();
+        sb.append("========================================================================\n");
+        sb.append("               INFORME COMPARATIVO DE EVOLUCIÓN BIOMÉTRICA              \n");
+        sb.append("========================================================================\n\n");
+        sb.append(String.format("Medición Anterior: #%d (%s)\n", comp.getMedicionAnterior().getIdMedicion(), sdf.format(comp.getMedicionAnterior().getFechaHora())));
+        sb.append(String.format("Medición Posterior: #%d (%s)\n\n", comp.getMedicionPosterior().getIdMedicion(), sdf.format(comp.getMedicionPosterior().getFechaHora())));
+
+        sb.append("DETALLE DE DIFERENCIAS:\n");
+        sb.append("------------------------------------------------------------------------\n");
+        sb.append(String.format("• Peso:        %s -> %s  (Δ: %s)\n",
+                formatear(comp.getPesoAnterior(), "kg"), formatear(comp.getPesoPosterior(), "kg"), formatearDelta(comp.getDeltaPeso(), "kg")));
+        sb.append(String.format("• IMC:         %s -> %s  (Δ: %s)\n",
+                formatear(comp.getImcAnterior(), ""), formatear(comp.getImcPosterior(), ""), formatearDelta(comp.getDeltaIMC(), "")));
+        sb.append(String.format("• Frec. Card.: %s -> %s  (Δ: %s)\n",
+                formatearInt(comp.getFcAnterior(), "bpm"), formatearInt(comp.getFcPosterior(), "bpm"), formatearDeltaInt(comp.getDeltaFC(), "bpm")));
+        sb.append(String.format("• Glucosa:     %s -> %s  (Δ: %s)\n",
+                formatear(comp.getGlucosaAnterior(), "mg/dL"), formatear(comp.getGlucosaPosterior(), "mg/dL"), formatearDelta(comp.getDeltaGlucosa(), "mg/dL")));
+
+        sb.append("\nINTERPRETACIÓN CLÍNICA / DIAGNÓSTICO:\n");
+        sb.append("------------------------------------------------------------------------\n");
+        sb.append(comp.getDiagnostico());
+
+        txtResultadoComparacion.setText(sb.toString());
+    }
+
+    private String formatear(Double val, String unit) {
+        return val != null ? String.format("%.2f %s", val, unit).trim() : "-";
+    }
+
+    private String formatearInt(Integer val, String unit) {
+        return val != null ? String.format("%d %s", val, unit).trim() : "-";
+    }
+
+    private String formatearDelta(Double val, String unit) {
+        return val != null ? String.format("%+.2f %s", val, unit).trim() : "-";
+    }
+
+    private String formatearDeltaInt(Integer val, String unit) {
+        return val != null ? String.format("%+d %s", val, unit).trim() : "-";
+    }
+
+    private void guardarRecomendacionesEnBD() {
+        if (recomendacionesActuales.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay recomendaciones para guardar.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int guardadas = 0;
+            for (Recomendacion r : recomendacionesActuales) {
+                if (recomendacionDAO.guardar(r)) {
+                    guardadas++;
+                }
+            }
+            JOptionPane.showMessageDialog(this, "Se guardaron " + guardadas + " recomendaciones en la base de datos.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al guardar recomendaciones: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void recargarDatos() {
         try {
-            List<Medicion> mediciones = medicionDAO.obtenerPorUsuario(usuario.getIdUsuario());
+            medicionesCargadas = medicionDAO.obtenerPorUsuario(usuario.getIdUsuario());
 
             // Actualizar tabla
             tableModel.setRowCount(0);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            for (Medicion m : mediciones) {
+            SimpleDateFormat sdfCorto = new SimpleDateFormat("dd/MM HH:mm");
+
+            cbMedicion1.removeAllItems();
+            cbMedicion2.removeAllItems();
+
+            for (Medicion m : medicionesCargadas) {
                 tableModel.addRow(new Object[]{
                         m.getIdMedicion(),
                         sdf.format(m.getFechaHora()),
@@ -280,12 +452,21 @@ public class MainFrame extends JFrame {
                         m.getFrecuenciaCardiaca() != null ? m.getFrecuenciaCardiaca() : "-",
                         m.getGlucosaSangre() != null ? m.getGlucosaSangre() : "-"
                 });
+
+                String item = String.format("#%d (%s)", m.getIdMedicion(), sdfCorto.format(m.getFechaHora()));
+                cbMedicion1.addItem(item);
+                cbMedicion2.addItem(item);
+            }
+
+            if (medicionesCargadas.size() >= 2) {
+                cbMedicion1.setSelectedIndex(0);
+                cbMedicion2.setSelectedIndex(medicionesCargadas.size() - 1);
             }
 
             // Actualizar Métricas
-            double fcProm = analisisService.calcularCardiaco(mediciones);
-            double gluProm = analisisService.calcularGlucosa(mediciones);
-            double imc = analisisService.calcularIMC(mediciones);
+            double fcProm = analisisService.calcularCardiaco(medicionesCargadas);
+            double gluProm = analisisService.calcularGlucosa(medicionesCargadas);
+            double imc = analisisService.calcularIMC(medicionesCargadas);
 
             lblPromedioCardiaco.setText(String.format("FC Promedio: %.0f bpm", fcProm));
             lblPromedioGlucosa.setText(String.format("Glucosa Promedio: %.1f mg/dL", gluProm));
@@ -293,8 +474,8 @@ public class MainFrame extends JFrame {
 
             // Actualizar Gráfica JFreeChart
             panelGrafico.removeAll();
-            if (!mediciones.isEmpty()) {
-                JFreeChart chart = analisisService.generarGraficaEvolucion(mediciones);
+            if (!medicionesCargadas.isEmpty()) {
+                JFreeChart chart = analisisService.generarGraficaEvolucion(medicionesCargadas);
                 ChartPanel chartPanel = new ChartPanel(chart);
                 panelGrafico.add(chartPanel, BorderLayout.CENTER);
             } else {
@@ -304,9 +485,9 @@ public class MainFrame extends JFrame {
             panelGrafico.repaint();
 
             // Actualizar Recomendaciones
-            List<Recomendacion> recomendaciones = analisisService.generarRecomendaciones(usuario.getIdUsuario(), mediciones);
+            recomendacionesActuales = analisisService.generarRecomendaciones(usuario.getIdUsuario(), medicionesCargadas);
             StringBuilder sb = new StringBuilder();
-            for (Recomendacion r : recomendaciones) {
+            for (Recomendacion r : recomendacionesActuales) {
                 sb.append("• [").append(r.getTipo()).append("]: ").append(r.getMensaje()).append("\n\n");
             }
             txtRecomendaciones.setText(sb.toString());

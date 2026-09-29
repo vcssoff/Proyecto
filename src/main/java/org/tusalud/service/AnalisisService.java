@@ -129,4 +129,69 @@ public class AnalisisService implements Promedio {
                 false
         );
     }
+
+    public org.tusalud.model.ComparacionBiometrica compararMediciones(Medicion m1, Medicion m2) {
+        if (m1 == null || m2 == null) return null;
+
+        Medicion ant = m1;
+        Medicion post = m2;
+        if (m1.getFechaHora() != null && m2.getFechaHora() != null && m1.getFechaHora().after(m2.getFechaHora())) {
+            ant = m2;
+            post = m1;
+        }
+
+        org.tusalud.model.ComparacionBiometrica comp = new org.tusalud.model.ComparacionBiometrica();
+        comp.setMedicionAnterior(ant);
+        comp.setMedicionPosterior(post);
+
+        comp.setPesoAnterior(ant.getPeso());
+        comp.setPesoPosterior(post.getPeso());
+        if (ant.getPeso() != null && post.getPeso() != null) {
+            comp.setDeltaPeso(post.getPeso() - ant.getPeso());
+        }
+
+        Double imcAnt = (ant.getPeso() != null && ant.getAltura() != null && ant.getAltura() > 0)
+                ? (ant.getPeso() / (ant.getAltura() * ant.getAltura())) : null;
+        Double imcPost = (post.getPeso() != null && post.getAltura() != null && post.getAltura() > 0)
+                ? (post.getPeso() / (post.getAltura() * post.getAltura())) : null;
+        comp.setImcAnterior(imcAnt);
+        comp.setImcPosterior(imcPost);
+        if (imcAnt != null && imcPost != null) {
+            comp.setDeltaIMC(imcPost - imcAnt);
+        }
+
+        comp.setFcAnterior(ant.getFrecuenciaCardiaca());
+        comp.setFcPosterior(post.getFrecuenciaCardiaca());
+        if (ant.getFrecuenciaCardiaca() != null && post.getFrecuenciaCardiaca() != null) {
+            comp.setDeltaFC(post.getFrecuenciaCardiaca() - ant.getFrecuenciaCardiaca());
+        }
+
+        comp.setGlucosaAnterior(ant.getGlucosaSangre());
+        comp.setGlucosaPosterior(post.getGlucosaSangre());
+        if (ant.getGlucosaSangre() != null && post.getGlucosaSangre() != null) {
+            comp.setDeltaGlucosa(post.getGlucosaSangre() - ant.getGlucosaSangre());
+        }
+
+        StringBuilder diag = new StringBuilder();
+        if (comp.getDeltaPeso() != null) {
+            if (comp.getDeltaPeso() > 0) diag.append(String.format("• Peso: Aumento de +%.2f kg.\n", comp.getDeltaPeso()));
+            else if (comp.getDeltaPeso() < 0) diag.append(String.format("• Peso: Reducción de %.2f kg.\n", comp.getDeltaPeso()));
+            else diag.append("• Peso: Sin variación.\n");
+        }
+        if (comp.getDeltaIMC() != null) {
+            diag.append(String.format("• IMC: Varió de %.1f a %.1f (Δ: %+.1f).\n", imcAnt, imcPost, comp.getDeltaIMC()));
+        }
+        if (comp.getDeltaFC() != null) {
+            diag.append(String.format("• Frecuencia Cardíaca: Variación de %+d bpm.\n", comp.getDeltaFC()));
+        }
+        if (comp.getDeltaGlucosa() != null) {
+            diag.append(String.format("• Glucosa: Variación de %+.1f mg/dL.\n", comp.getDeltaGlucosa()));
+        }
+        if (diag.length() == 0) {
+            diag.append("No hay suficientes variables coincidentes para calcular diferencias.");
+        }
+        comp.setDiagnostico(diag.toString());
+
+        return comp;
+    }
 }
