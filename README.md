@@ -1,5 +1,5 @@
 # Proyecto: TuSalud
-Hecho por Manuel Pintaluba, Sofia Cedres, Rodrigo Alonso y Fabian Guillermo.
+Hecho por Manuel Pintaluba, Sofía Cedrés, Rodrigo Alonso y Fabian Guillermo.
 
 ### Descripción del problema y solución:
 
