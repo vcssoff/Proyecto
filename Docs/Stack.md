@@ -30,7 +30,7 @@
 #### Interfaz Gráfica (UI)
 | Tecnología | Utilización |
 | :--- | ---: |
-| JavaFX / Swing | Construcción y diseño de las vistas e interfaces de usuario para la aplicación de escritorio |
+| Swing | Construcción y diseño de las vistas e interfaces de usuario para la aplicación de escritorio |
 
 #### Infraestructura y Despliegue
 | Plataforma | Utilización |
