@@ -86,4 +86,25 @@ public class AnalisisServiceTest {
         assertEquals(-15.0, comp.getDeltaGlucosa(), 0.001, "La glucosa debe haber bajado 15.0 mg/dL");
         assertNotNull(comp.getDiagnostico());
     }
+
+    @Test
+    public void testCalcularIMC_AlturaYPesoEnMedicionesSeparadas() {
+        List<Medicion> mediciones = new ArrayList<>();
+        // Medición inicial donde solo registró su altura
+        mediciones.add(new Medicion(1, new Timestamp(System.currentTimeMillis() - 20000), null, 1.80, null, null));
+        // Medición posterior donde solo registró su peso
+        mediciones.add(new Medicion(1, new Timestamp(System.currentTimeMillis()), 75.0, null, 70, 90.0));
+
+        double imc = service.calcularIMC(mediciones);
+        double imcEsperado = 75.0 / (1.80 * 1.80);
+        assertEquals(imcEsperado, imc, 0.01, "Debe calcular el IMC usando la última altura conocida y el último peso");
+    }
+
+    @Test
+    public void testGenerarGraficaFiltrada_ManejoDeNulos() {
+        assertDoesNotThrow(() -> {
+            service.generarGraficaFiltrada(null, "TODAS");
+            service.generarGraficaFiltrada(new ArrayList<>(), "PESO");
+        }, "No debe lanzar excepciones cuando la lista de mediciones es nula o vacía");
+    }
 }

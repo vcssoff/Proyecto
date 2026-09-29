@@ -14,6 +14,14 @@ import java.util.stream.Collectors;
 public class DatabaseInitializer {
 
     public static boolean inicializarTablas() {
+        // Asegurar que la base de datos exista antes de intentar conectar a ella
+        try (Connection rootConn = DatabaseConnection.getConnectionSinBD();
+             Statement stmtRoot = rootConn.createStatement()) {
+            stmtRoot.execute("CREATE DATABASE IF NOT EXISTS tusalud;");
+        } catch (Exception e) {
+            System.err.println("Aviso al verificar/crear base de datos: " + e.getMessage());
+        }
+
         try (Connection conn = DatabaseConnection.getConnection();
              InputStream is = DatabaseInitializer.class.getResourceAsStream("/db/schema.sql")) {
 

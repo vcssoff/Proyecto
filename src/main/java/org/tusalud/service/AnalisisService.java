@@ -44,12 +44,20 @@ public class AnalisisService implements Promedio {
     @Override
     public double calcularIMC(List<Medicion> mediciones) {
         if (mediciones == null || mediciones.isEmpty()) return 0.0;
-        // Tomar la medición más reciente que contenga peso y altura válidos
+        Double ultimoPeso = null;
+        Double ultimaAltura = null;
         for (int i = mediciones.size() - 1; i >= 0; i--) {
             Medicion m = mediciones.get(i);
-            if (m.getPeso() != null && m.getAltura() != null && m.getAltura() > 0) {
-                return m.getPeso() / (m.getAltura() * m.getAltura());
+            if (ultimoPeso == null && m.getPeso() != null && m.getPeso() > 0) {
+                ultimoPeso = m.getPeso();
             }
+            if (ultimaAltura == null && m.getAltura() != null && m.getAltura() > 0) {
+                ultimaAltura = m.getAltura();
+            }
+            if (ultimoPeso != null && ultimaAltura != null) break;
+        }
+        if (ultimoPeso != null && ultimaAltura != null && ultimaAltura > 0) {
+            return ultimoPeso / (ultimaAltura * ultimaAltura);
         }
         return 0.0;
     }
@@ -107,30 +115,33 @@ public class AnalisisService implements Promedio {
 
     public JFreeChart generarGraficaFiltrada(List<Medicion> mediciones, String tipoFiltro) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy HH:mm");
 
-        for (Medicion m : mediciones) {
-            String fecha = sdf.format(m.getFechaHora());
+        if (mediciones != null) {
+            for (Medicion m : mediciones) {
+                if (m.getFechaHora() == null) continue;
+                String fecha = sdf.format(m.getFechaHora()) + " (#" + m.getIdMedicion() + ")";
 
-            if ("TODAS".equalsIgnoreCase(tipoFiltro) || "PESO".equalsIgnoreCase(tipoFiltro)) {
-                if (m.getPeso() != null) {
-                    dataset.addValue(m.getPeso(), "Peso (kg)", fecha);
+                if ("TODAS".equalsIgnoreCase(tipoFiltro) || "PESO".equalsIgnoreCase(tipoFiltro)) {
+                    if (m.getPeso() != null) {
+                        dataset.addValue(m.getPeso(), "Peso (kg)", fecha);
+                    }
                 }
-            }
-            if ("TODAS".equalsIgnoreCase(tipoFiltro) || "CARDIACO".equalsIgnoreCase(tipoFiltro)) {
-                if (m.getFrecuenciaCardiaca() != null) {
-                    dataset.addValue(m.getFrecuenciaCardiaca(), "Pulsaciones (bpm)", fecha);
+                if ("TODAS".equalsIgnoreCase(tipoFiltro) || "CARDIACO".equalsIgnoreCase(tipoFiltro)) {
+                    if (m.getFrecuenciaCardiaca() != null) {
+                        dataset.addValue(m.getFrecuenciaCardiaca(), "Pulsaciones (bpm)", fecha);
+                    }
                 }
-            }
-            if ("TODAS".equalsIgnoreCase(tipoFiltro) || "GLUCOSA".equalsIgnoreCase(tipoFiltro)) {
-                if (m.getGlucosaSangre() != null) {
-                    dataset.addValue(m.getGlucosaSangre(), "Glucosa (mg/dL)", fecha);
+                if ("TODAS".equalsIgnoreCase(tipoFiltro) || "GLUCOSA".equalsIgnoreCase(tipoFiltro)) {
+                    if (m.getGlucosaSangre() != null) {
+                        dataset.addValue(m.getGlucosaSangre(), "Glucosa (mg/dL)", fecha);
+                    }
                 }
-            }
-            if ("IMC".equalsIgnoreCase(tipoFiltro)) {
-                if (m.getPeso() != null && m.getAltura() != null && m.getAltura() > 0) {
-                    double imc = m.getPeso() / (m.getAltura() * m.getAltura());
-                    dataset.addValue(Math.round(imc * 10.0) / 10.0, "IMC", fecha);
+                if ("IMC".equalsIgnoreCase(tipoFiltro)) {
+                    if (m.getPeso() != null && m.getAltura() != null && m.getAltura() > 0) {
+                        double imc = m.getPeso() / (m.getAltura() * m.getAltura());
+                        dataset.addValue(Math.round(imc * 10.0) / 10.0, "IMC", fecha);
+                    }
                 }
             }
         }

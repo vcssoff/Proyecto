@@ -102,6 +102,31 @@ public class EditarMedicionDialog extends JDialog {
                 return;
             }
 
+            if (altura != null) {
+                if (altura > 3.0 && altura <= 300.0) {
+                    altura = Math.round((altura / 100.0) * 100.0) / 100.0;
+                }
+                if (altura < 0.4 || altura > 2.8) {
+                    JOptionPane.showMessageDialog(this, "La altura debe ser un valor válido en metros (ej: 1.75).", "Validación", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+
+            if (peso != null && (peso < 10.0 || peso > 500.0)) {
+                JOptionPane.showMessageDialog(this, "El peso debe estar entre 10 kg y 500 kg.", "Validación", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (fc != null && (fc < 25 || fc > 260)) {
+                JOptionPane.showMessageDialog(this, "La frecuencia cardíaca debe estar entre 25 y 260 bpm.", "Validación", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (glucosa != null && (glucosa < 20.0 || glucosa > 1000.0)) {
+                JOptionPane.showMessageDialog(this, "El nivel de glucosa debe estar entre 20 y 1000 mg/dL.", "Validación", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             medicion.setPeso(peso);
             medicion.setAltura(altura);
             medicion.setFrecuenciaCardiaca(fc);

@@ -30,6 +30,16 @@ public class DatabaseConnection {
         return defaultValue;
     }
 
+    public static Connection getConnectionSinBD() throws SQLException {
+        String host = getEnv("DB_HOST", "localhost");
+        String port = getEnv("DB_PORT", "3306");
+        String user = getEnv("DB_USER", "root");
+        String pass = getEnv("DB_PASSWORD", "");
+
+        String url = String.format("jdbc:mysql://%s:%s/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", host, port);
+        return DriverManager.getConnection(url, user, pass);
+    }
+
     public static Connection getConnection() throws SQLException {
         String host = getEnv("DB_HOST", "localhost");
         String port = getEnv("DB_PORT", "3306");
