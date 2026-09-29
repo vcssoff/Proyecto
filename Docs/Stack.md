@@ -1,5 +1,13 @@
 # Stack Tecnológico
 
+#### IAs de apoyo
+| IA | Utilización |
+| :--- | ---: |
+| Gemini | Tareas simples y búsqueda de información |
+| Chatgpt | Correción de los documentos Markdown y diferentes diagramas |
+| Claude | Lógica y diagramado |
+| Antigravity | Vibecoding y testeo |
+
 #### Lenguajes de código
 | Lenguajes| Utilización |
 | :--- | ---: |
