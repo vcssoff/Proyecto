@@ -43,7 +43,7 @@ public class DatabaseConnection {
     public static Connection getConnection() throws SQLException {
         String host = getEnv("DB_HOST", "localhost");
         String port = getEnv("DB_PORT", "3306");
-        String name = getEnv("DB_NAME", "tusalud");
+        String name = getEnv("DB_NAME", "railway");
         String user = getEnv("DB_USER", "root");
         String pass = getEnv("DB_PASSWORD", "");
 

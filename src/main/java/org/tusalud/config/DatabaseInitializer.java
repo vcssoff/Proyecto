@@ -17,7 +17,7 @@ public class DatabaseInitializer {
         // Asegurar que la base de datos exista antes de intentar conectar a ella
         try (Connection rootConn = DatabaseConnection.getConnectionSinBD();
              Statement stmtRoot = rootConn.createStatement()) {
-            stmtRoot.execute("CREATE DATABASE IF NOT EXISTS tusalud;");
+            stmtRoot.execute("CREATE DATABASE IF NOT EXISTS railway;");
         } catch (Exception e) {
             System.err.println("Aviso al verificar/crear base de datos: " + e.getMessage());
         }

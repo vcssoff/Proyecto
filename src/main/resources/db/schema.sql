@@ -1,6 +1,6 @@
 -- Esquema Relacional de TuSalud (MySQL 8.0+)
-CREATE DATABASE IF NOT EXISTS tusalud;
-USE tusalud;
+CREATE DATABASE IF NOT EXISTS railway;
+USE railway;
 
 CREATE TABLE IF NOT EXISTS USUARIOS (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
