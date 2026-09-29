@@ -11,3 +11,6 @@ node_modules/
 
 # Ignore environment variable files containing API keys
 .env
+
+# Maven build target
+target/
