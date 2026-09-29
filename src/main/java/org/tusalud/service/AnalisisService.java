@@ -102,26 +102,60 @@ public class AnalisisService implements Promedio {
     }
 
     public JFreeChart generarGraficaEvolucion(List<Medicion> mediciones) {
+        return generarGraficaFiltrada(mediciones, "TODAS");
+    }
+
+    public JFreeChart generarGraficaFiltrada(List<Medicion> mediciones, String tipoFiltro) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm");
 
         for (Medicion m : mediciones) {
             String fecha = sdf.format(m.getFechaHora());
-            if (m.getPeso() != null) {
-                dataset.addValue(m.getPeso(), "Peso (kg)", fecha);
+
+            if ("TODAS".equalsIgnoreCase(tipoFiltro) || "PESO".equalsIgnoreCase(tipoFiltro)) {
+                if (m.getPeso() != null) {
+                    dataset.addValue(m.getPeso(), "Peso (kg)", fecha);
+                }
             }
-            if (m.getFrecuenciaCardiaca() != null) {
-                dataset.addValue(m.getFrecuenciaCardiaca(), "Pulsaciones (bpm)", fecha);
+            if ("TODAS".equalsIgnoreCase(tipoFiltro) || "CARDIACO".equalsIgnoreCase(tipoFiltro)) {
+                if (m.getFrecuenciaCardiaca() != null) {
+                    dataset.addValue(m.getFrecuenciaCardiaca(), "Pulsaciones (bpm)", fecha);
+                }
             }
-            if (m.getGlucosaSangre() != null) {
-                dataset.addValue(m.getGlucosaSangre(), "Glucosa (mg/dL)", fecha);
+            if ("TODAS".equalsIgnoreCase(tipoFiltro) || "GLUCOSA".equalsIgnoreCase(tipoFiltro)) {
+                if (m.getGlucosaSangre() != null) {
+                    dataset.addValue(m.getGlucosaSangre(), "Glucosa (mg/dL)", fecha);
+                }
+            }
+            if ("IMC".equalsIgnoreCase(tipoFiltro)) {
+                if (m.getPeso() != null && m.getAltura() != null && m.getAltura() > 0) {
+                    double imc = m.getPeso() / (m.getAltura() * m.getAltura());
+                    dataset.addValue(Math.round(imc * 10.0) / 10.0, "IMC", fecha);
+                }
             }
         }
 
+        String titulo = "Evolución de Mediciones Biométricas";
+        String etiquetaY = "Valor";
+
+        if ("PESO".equalsIgnoreCase(tipoFiltro)) {
+            titulo = "Evolución del Peso Corporal";
+            etiquetaY = "Kilogramos (kg)";
+        } else if ("CARDIACO".equalsIgnoreCase(tipoFiltro)) {
+            titulo = "Evolución de Frecuencia Cardíaca";
+            etiquetaY = "Pulsaciones por minuto (bpm)";
+        } else if ("GLUCOSA".equalsIgnoreCase(tipoFiltro)) {
+            titulo = "Evolución de Glucosa en Sangre";
+            etiquetaY = "Miligramos por decilitro (mg/dL)";
+        } else if ("IMC".equalsIgnoreCase(tipoFiltro)) {
+            titulo = "Evolución del Índice de Masa Corporal (IMC)";
+            etiquetaY = "Índice (kg/m²)";
+        }
+
         return ChartFactory.createLineChart(
-                "Evolución de Mediciones Biométricas",
-                "Fecha",
-                "Valor",
+                titulo,
+                "Fecha y Hora",
+                etiquetaY,
                 dataset,
                 PlotOrientation.VERTICAL,
                 true,

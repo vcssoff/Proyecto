@@ -18,6 +18,9 @@ public class Main {
             } catch (Exception ignored2) {}
         }
 
+        // Auto-creación de tablas si no existen en la BD
+        org.tusalud.config.DatabaseInitializer.inicializarTablas();
+
         SwingUtilities.invokeLater(() -> {
             LoginDialog login = new LoginDialog(null);
             login.setVisible(true);

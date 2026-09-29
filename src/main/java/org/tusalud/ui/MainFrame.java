@@ -41,6 +41,7 @@ public class MainFrame extends JFrame {
     private JLabel lblPromedioGlucosa;
     private JLabel lblIMC;
     private JPanel panelGrafico;
+    private String filtroGraficoActual = "TODAS";
 
     // Componentes de Comparación
     private JComboBox<String> cbMedicion1;
@@ -171,6 +172,12 @@ public class MainFrame extends JFrame {
         btnPanel.add(btnRefrescar);
         btnPanel.add(btnEditar);
         btnPanel.add(btnEliminar);
+
+        JButton btnDemo = new JButton("🌱 Datos Demo");
+        btnDemo.setToolTipText("Carga 5 mediciones de prueba para evaluar gráficos y comparaciones");
+        btnDemo.addActionListener(e -> cargarDatosDemo());
+        btnPanel.add(btnDemo);
+
         panel.add(btnPanel, BorderLayout.SOUTH);
 
         return panel;
@@ -196,7 +203,31 @@ public class MainFrame extends JFrame {
         metricas.add(lblPromedioGlucosa);
         metricas.add(lblIMC);
 
-        panel.add(metricas, BorderLayout.NORTH);
+        JPanel topEstadisticas = new JPanel(new BorderLayout());
+        topEstadisticas.add(metricas, BorderLayout.CENTER);
+
+        JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        panelFiltro.add(new JLabel("Filtrar Gráfico por:"));
+        JComboBox<String> cbFiltroGrafico = new JComboBox<>(new String[]{
+                "Todas las variables",
+                "Solo Peso (kg)",
+                "Solo Frecuencia Cardíaca (bpm)",
+                "Solo Glucosa (mg/dL)",
+                "Solo Índice de Masa Corporal (IMC)"
+        });
+        cbFiltroGrafico.addActionListener(e -> {
+            String sel = (String) cbFiltroGrafico.getSelectedItem();
+            String tipo = "TODAS";
+            if ("Solo Peso (kg)".equals(sel)) tipo = "PESO";
+            else if ("Solo Frecuencia Cardíaca (bpm)".equals(sel)) tipo = "CARDIACO";
+            else if ("Solo Glucosa (mg/dL)".equals(sel)) tipo = "GLUCOSA";
+            else if ("Solo Índice de Masa Corporal (IMC)".equals(sel)) tipo = "IMC";
+            actualizarGrafico(tipo);
+        });
+        panelFiltro.add(cbFiltroGrafico);
+        topEstadisticas.add(panelFiltro, BorderLayout.SOUTH);
+
+        panel.add(topEstadisticas, BorderLayout.NORTH);
 
         panelGrafico = new JPanel(new BorderLayout());
         panelGrafico.setBorder(BorderFactory.createTitledBorder("Gráfica de Evolución Temporal"));
@@ -472,17 +503,8 @@ public class MainFrame extends JFrame {
             lblPromedioGlucosa.setText(String.format("Glucosa Promedio: %.1f mg/dL", gluProm));
             lblIMC.setText(String.format("IMC Actual: %.1f", imc));
 
-            // Actualizar Gráfica JFreeChart
-            panelGrafico.removeAll();
-            if (!medicionesCargadas.isEmpty()) {
-                JFreeChart chart = analisisService.generarGraficaEvolucion(medicionesCargadas);
-                ChartPanel chartPanel = new ChartPanel(chart);
-                panelGrafico.add(chartPanel, BorderLayout.CENTER);
-            } else {
-                panelGrafico.add(new JLabel("No hay mediciones suficientes para graficar.", SwingConstants.CENTER), BorderLayout.CENTER);
-            }
-            panelGrafico.revalidate();
-            panelGrafico.repaint();
+            // Actualizar Gráfica con el filtro seleccionado
+            actualizarGrafico(filtroGraficoActual);
 
             // Actualizar Recomendaciones
             recomendacionesActuales = analisisService.generarRecomendaciones(usuario.getIdUsuario(), medicionesCargadas);
@@ -494,6 +516,34 @@ public class MainFrame extends JFrame {
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al sincronizar datos:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void actualizarGrafico(String tipoFiltro) {
+        this.filtroGraficoActual = tipoFiltro;
+        panelGrafico.removeAll();
+        if (!medicionesCargadas.isEmpty()) {
+            JFreeChart chart = analisisService.generarGraficaFiltrada(medicionesCargadas, tipoFiltro);
+            ChartPanel chartPanel = new ChartPanel(chart);
+            panelGrafico.add(chartPanel, BorderLayout.CENTER);
+        } else {
+            panelGrafico.add(new JLabel("No hay mediciones suficientes para graficar.", SwingConstants.CENTER), BorderLayout.CENTER);
+        }
+        panelGrafico.revalidate();
+        panelGrafico.repaint();
+    }
+
+    private void cargarDatosDemo() {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Deseas cargar 5 mediciones biométricas de prueba para este usuario?\nEsto facilitará evaluar gráficos, comparaciones y recomendaciones.",
+                "Cargar Datos de Demostración",
+                JOptionPane.YES_NO_OPTION
+        );
+        if (confirm == JOptionPane.YES_OPTION) {
+            int insertados = org.tusalud.config.DatabaseInitializer.sembrarDatosDemo(usuario.getIdUsuario());
+            JOptionPane.showMessageDialog(this, "Se cargaron " + insertados + " registros de prueba exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            recargarDatos();
         }
     }
 }
