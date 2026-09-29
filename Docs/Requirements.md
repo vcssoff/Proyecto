@@ -16,7 +16,7 @@
 - Usabilidad: la interfaz debe ser sencilla, clara e intuitiva.
 - Rendimiento: los cálculos y gráficos deben generarse rápidamente.
 - Disponibilidad: la aplicación debe estar disponible cuando el usuario la necesite.
-- Compatibilidad: debe funcionar correctamente en los dispositivos y sistemas operativos         
+- Compatibilidad: debe funcionar correctamente en los dispositivos y sistemas operativos (Linux y Windows)       
   definidos para el proyecto.
 - Mantenibilidad: el código debe estar organizado para facilitar futuras modificaciones y     
   correcciones.
