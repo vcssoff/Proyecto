@@ -10,8 +10,8 @@ Además, el sistema podrá proporcionar recomendaciones generales basadas en los
 
 En resumen, buscamos crear una herramienta simple, visual e intuitiva que permita registrar datos, analizar cambios y llevar un control organizado de la evolución del usuario.
 
-### Marco teórico
-#### Datos biométricos registrados
+# Marco teórico
+### Datos biométricos registrados
 
 La aplicación permitirá registrar los siguientes datos biométricos:
 
@@ -27,7 +27,7 @@ Cada registro podrá contener los datos disponibles en el momento de la medició
 El sistema almacenará la fecha y hora en la que se realizó cada registro.
 
 ---
-## Definición de una medición
+### Definición de una medición
 
 Una instancia de `Medicion` representa un registro realizado por un usuario en una fecha y hora determinadas.
 
@@ -47,7 +47,7 @@ La fecha y hora forman parte del registro para permitir ordenar el historial y c
 La edad no se almacenará como un dato independiente de `Medicion`. Se calculará a partir de la `fechaNacimiento` almacenada en `Usuario` cuando sea necesaria.
 
 ---
-## Unidades de los datos biométricos
+### Unidades de los datos biométricos
 
 Todos los datos biométricos utilizarán las siguientes unidades:
 
