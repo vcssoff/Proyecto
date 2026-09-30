@@ -27,7 +27,7 @@ flowchart LR
 
 El modelo relacional está diseñado en **Tercera Forma Normal (3NF)** para garantizar la integridad referencial, eliminar redundancias y escalar eficientemente en **MySQL**.
 
-### Diagrama Entidad-Relación (Mermaid)
+### Diagrama Entidad-Relación
 
 ```mermaid
 erDiagram
