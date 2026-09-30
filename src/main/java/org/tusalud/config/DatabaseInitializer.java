@@ -55,6 +55,10 @@ public class DatabaseInitializer {
     }
 
     public static int sembrarDatosDemo(int idUsuario) {
+        return sembrarDatosDemo(idUsuario, null);
+    }
+
+    public static int sembrarDatosDemo(int idUsuario, String perfilMedico) {
         MedicionDAO dao = new MedicionDAO();
         long ahora = System.currentTimeMillis();
         long unDia = 86400000L;
@@ -70,6 +74,7 @@ public class DatabaseInitializer {
         int insertados = 0;
         for (Medicion m : demos) {
             try {
+                org.tusalud.service.PerfilMedicoService.sanitizarMedicion(m, perfilMedico);
                 if (dao.agregar(m)) {
                     insertados++;
                 }

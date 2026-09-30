@@ -9,6 +9,7 @@ import org.tusalud.model.Usuario;
 import org.tusalud.repository.MedicionDAO;
 import org.tusalud.repository.RecomendacionDAO;
 import org.tusalud.service.AnalisisService;
+import org.tusalud.service.PerfilMedicoService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -27,6 +28,11 @@ public class MainFrame extends JFrame {
     private List<Medicion> medicionesCargadas = new ArrayList<>();
 
     // Componentes de Nueva Medición
+    private JLabel lblBannerPerfil;
+    private JLabel lblPeso;
+    private JLabel lblAltura;
+    private JLabel lblFrecuencia;
+    private JLabel lblGlucosa;
     private JTextField txtPeso;
     private JTextField txtAltura;
     private JTextField txtFrecuencia;
@@ -61,6 +67,7 @@ public class MainFrame extends JFrame {
         setSize(980, 720);
         setLocationRelativeTo(null);
         initComponents();
+        aplicarRestriccionesPerfil();
 
         // Si el usuario no tiene cuestionario completado, abrir diálogo de onboarding
         if (usuario.getPerfilMedico() == null || usuario.getPerfilMedico().trim().isEmpty()) {
@@ -79,10 +86,59 @@ public class MainFrame extends JFrame {
 
     private void actualizarEtiquetaUsuario() {
         String perfilStr = (usuario.getPerfilMedico() != null && !usuario.getPerfilMedico().isEmpty()) 
-                ? " | Perfil: " + usuario.getPerfilMedico().replace('_', ' ') 
+                ? " | Perfil: " + PerfilMedicoService.getNombreLegible(usuario.getPerfilMedico()) 
                 : "";
         if (userLabel != null) {
             userLabel.setText("Sesión activa: " + usuario.getNombre() + " (" + usuario.getCorreo() + ")" + perfilStr);
+        }
+        aplicarRestriccionesPerfil();
+    }
+
+    private void aplicarRestriccionesPerfil() {
+        String perfil = usuario.getPerfilMedico();
+        boolean puedePeso = PerfilMedicoService.permitePeso(perfil);
+        boolean puedeAltura = PerfilMedicoService.permiteAltura(perfil);
+        boolean puedeFC = PerfilMedicoService.permiteFrecuencia(perfil);
+        boolean puedeGlucosa = PerfilMedicoService.permiteGlucosa(perfil);
+
+        if (lblBannerPerfil != null) {
+            StringBuilder sb = new StringBuilder("<html><div style='padding:8px 12px; background-color:#ebf5fb; border:1px solid #aed6f1; border-radius:5px;'>");
+            sb.append("<b style='color:#1b4f72;'>📋 Perfil Médico: ").append(PerfilMedicoService.getNombreLegible(perfil)).append("</b><br>");
+            sb.append("<small><span style='color:#1e8449;'><b>✔ Habilitados para ingresar:</b> ");
+            List<String> permitidas = PerfilMedicoService.getMetricasPermitidas(perfil);
+            sb.append(String.join(", ", permitidas)).append("</span>");
+            List<String> bloqueadas = PerfilMedicoService.getMetricasBloqueadas(perfil);
+            if (!bloqueadas.isEmpty()) {
+                sb.append("<br><span style='color:#922b21;'><b>🔒 Bloqueados (no influyen en tus opciones):</b> ");
+                sb.append(String.join(", ", bloqueadas)).append("</span>");
+            }
+            sb.append("</small></div></html>");
+            lblBannerPerfil.setText(sb.toString());
+        }
+
+        configurarCampoBiometrico(txtPeso, lblPeso, "Peso Corporal (kg)", puedePeso, PerfilMedicoService.getMotivoBloqueo("peso", perfil));
+        configurarCampoBiometrico(txtAltura, lblAltura, "Altura (metros, ej. 1.75)", puedeAltura, PerfilMedicoService.getMotivoBloqueo("altura", perfil));
+        configurarCampoBiometrico(txtFrecuencia, lblFrecuencia, "Frecuencia Cardíaca (bpm)", puedeFC, PerfilMedicoService.getMotivoBloqueo("fc", perfil));
+        configurarCampoBiometrico(txtGlucosa, lblGlucosa, "Glucosa en Sangre (mg/dL)", puedeGlucosa, PerfilMedicoService.getMotivoBloqueo("glucosa", perfil));
+    }
+
+    private void configurarCampoBiometrico(JTextField field, JLabel label, String tituloBase, boolean habilitado, String motivoBloqueo) {
+        if (field == null) return;
+        if (label != null) {
+            label.setText(tituloBase + (habilitado ? ":" : " [Bloqueado]:"));
+            label.setForeground(habilitado ? new Color(44, 62, 80) : new Color(127, 140, 141));
+        }
+        if (!habilitado) {
+            field.setText("");
+            field.setEditable(false);
+            field.setEnabled(false);
+            field.setBackground(new Color(242, 244, 244));
+            field.setToolTipText("🔒 " + motivoBloqueo);
+        } else {
+            field.setEditable(true);
+            field.setEnabled(true);
+            field.setBackground(Color.WHITE);
+            field.setToolTipText("Ingresa valor para " + tituloBase);
         }
     }
 
@@ -99,7 +155,7 @@ public class MainFrame extends JFrame {
         title.setForeground(Color.WHITE);
 
         String perfilStr = (usuario.getPerfilMedico() != null && !usuario.getPerfilMedico().isEmpty()) 
-                ? " | Perfil: " + usuario.getPerfilMedico().replace('_', ' ') 
+                ? " | Perfil: " + PerfilMedicoService.getNombreLegible(usuario.getPerfilMedico()) 
                 : "";
         userLabel = new JLabel("Sesión activa: " + usuario.getNombre() + " (" + usuario.getCorreo() + ")" + perfilStr);
         userLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
@@ -124,37 +180,45 @@ public class MainFrame extends JFrame {
 
     private JPanel crearPanelNuevaMedicion() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 35, 20, 35));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(8, 10, 8, 10);
 
-        JLabel desc = new JLabel("<html><b>Ingreso de Datos Biométricos</b><br><small>Ingresa uno o más valores para registrar tu medición:</small></html>");
+        JLabel desc = new JLabel("<html><b>Ingreso de Datos Biométricos</b><br><small>Ingresa tus mediciones personalizadas según tu perfil:</small></html>");
         desc.setFont(new Font("SansSerif", Font.PLAIN, 14));
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         panel.add(desc, gbc);
 
+        lblBannerPerfil = new JLabel();
+        gbc.gridy = 1; gbc.gridx = 0; gbc.gridwidth = 2;
+        panel.add(lblBannerPerfil, gbc);
+
         gbc.gridwidth = 1;
-        gbc.gridy = 1; gbc.gridx = 0;
-        panel.add(new JLabel("Peso Corporal (kg):"), gbc);
+        gbc.gridy = 2; gbc.gridx = 0;
+        lblPeso = new JLabel("Peso Corporal (kg):");
+        panel.add(lblPeso, gbc);
         gbc.gridx = 1;
         txtPeso = new JTextField(15);
         panel.add(txtPeso, gbc);
 
-        gbc.gridy = 2; gbc.gridx = 0;
-        panel.add(new JLabel("Altura (metros, ej. 1.75):"), gbc);
+        gbc.gridy = 3; gbc.gridx = 0;
+        lblAltura = new JLabel("Altura (metros, ej. 1.75):");
+        panel.add(lblAltura, gbc);
         gbc.gridx = 1;
         txtAltura = new JTextField(15);
         panel.add(txtAltura, gbc);
 
-        gbc.gridy = 3; gbc.gridx = 0;
-        panel.add(new JLabel("Frecuencia Cardíaca (bpm):"), gbc);
+        gbc.gridy = 4; gbc.gridx = 0;
+        lblFrecuencia = new JLabel("Frecuencia Cardíaca (bpm):");
+        panel.add(lblFrecuencia, gbc);
         gbc.gridx = 1;
         txtFrecuencia = new JTextField(15);
         panel.add(txtFrecuencia, gbc);
 
-        gbc.gridy = 4; gbc.gridx = 0;
-        panel.add(new JLabel("Glucosa en Sangre (mg/dL):"), gbc);
+        gbc.gridy = 5; gbc.gridx = 0;
+        lblGlucosa = new JLabel("Glucosa en Sangre (mg/dL):");
+        panel.add(lblGlucosa, gbc);
         gbc.gridx = 1;
         txtGlucosa = new JTextField(15);
         panel.add(txtGlucosa, gbc);
@@ -165,7 +229,7 @@ public class MainFrame extends JFrame {
         btnGuardar.setFont(new Font("SansSerif", Font.BOLD, 13));
         btnGuardar.addActionListener(e -> guardarMedicion());
 
-        gbc.gridy = 5; gbc.gridx = 0; gbc.gridwidth = 2;
+        gbc.gridy = 6; gbc.gridx = 0; gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(btnGuardar, gbc);
 
@@ -334,18 +398,27 @@ public class MainFrame extends JFrame {
     }
 
     private void guardarMedicion() {
+        String perfil = usuario.getPerfilMedico();
+        boolean puedePeso = PerfilMedicoService.permitePeso(perfil);
+        boolean puedeAltura = PerfilMedicoService.permiteAltura(perfil);
+        boolean puedeFC = PerfilMedicoService.permiteFrecuencia(perfil);
+        boolean puedeGlucosa = PerfilMedicoService.permiteGlucosa(perfil);
+
         try {
-            Double peso = txtPeso.getText().trim().isEmpty() ? null : Double.parseDouble(txtPeso.getText().trim());
-            Double altura = txtAltura.getText().trim().isEmpty() ? null : Double.parseDouble(txtAltura.getText().trim());
-            Integer fc = txtFrecuencia.getText().trim().isEmpty() ? null : Integer.parseInt(txtFrecuencia.getText().trim());
-            Double glucosa = txtGlucosa.getText().trim().isEmpty() ? null : Double.parseDouble(txtGlucosa.getText().trim());
+            Double peso = (puedePeso && !txtPeso.getText().trim().isEmpty()) ? Double.parseDouble(txtPeso.getText().trim()) : null;
+            Double altura = (puedeAltura && !txtAltura.getText().trim().isEmpty()) ? Double.parseDouble(txtAltura.getText().trim()) : null;
+            Integer fc = (puedeFC && !txtFrecuencia.getText().trim().isEmpty()) ? Integer.parseInt(txtFrecuencia.getText().trim()) : null;
+            Double glucosa = (puedeGlucosa && !txtGlucosa.getText().trim().isEmpty()) ? Double.parseDouble(txtGlucosa.getText().trim()) : null;
 
             if (peso == null && altura == null && fc == null && glucosa == null) {
-                JOptionPane.showMessageDialog(this, "Debes ingresar al menos un dato biométrico.", "Validación", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Debes ingresar al menos un dato biométrico correspondiente a tu perfil (" + PerfilMedicoService.getNombreLegible(perfil) + "):\n• "
+                                + String.join("\n• ", PerfilMedicoService.getMetricasPermitidas(perfil)),
+                        "Validación de Perfil", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            if (altura != null) {
+            if (puedeAltura && altura != null) {
                 if (altura > 3.0 && altura <= 300.0) {
                     altura = Math.round((altura / 100.0) * 100.0) / 100.0;
                 }
@@ -355,17 +428,17 @@ public class MainFrame extends JFrame {
                 }
             }
 
-            if (peso != null && (peso < 10.0 || peso > 500.0)) {
+            if (puedePeso && peso != null && (peso < 10.0 || peso > 500.0)) {
                 JOptionPane.showMessageDialog(this, "El peso debe estar entre 10 kg y 500 kg.", "Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            if (fc != null && (fc < 25 || fc > 260)) {
+            if (puedeFC && fc != null && (fc < 25 || fc > 260)) {
                 JOptionPane.showMessageDialog(this, "La frecuencia cardíaca debe estar entre 25 y 260 bpm.", "Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            if (glucosa != null && (glucosa < 20.0 || glucosa > 1000.0)) {
+            if (puedeGlucosa && glucosa != null && (glucosa < 20.0 || glucosa > 1000.0)) {
                 JOptionPane.showMessageDialog(this, "El nivel de glucosa debe estar entre 20 y 1000 mg/dL.", "Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -378,6 +451,8 @@ public class MainFrame extends JFrame {
                     fc,
                     glucosa
             );
+
+            PerfilMedicoService.sanitizarMedicion(m, perfil);
 
             if (medicionDAO.agregar(m)) {
                 JOptionPane.showMessageDialog(this, "Medición registrada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -413,7 +488,7 @@ public class MainFrame extends JFrame {
         }
 
         if (target != null) {
-            EditarMedicionDialog dialog = new EditarMedicionDialog(this, target);
+            EditarMedicionDialog dialog = new EditarMedicionDialog(this, target, usuario);
             dialog.setVisible(true);
             if (dialog.isActualizado()) {
                 recargarDatos();
@@ -605,8 +680,8 @@ public class MainFrame extends JFrame {
                 JOptionPane.YES_NO_OPTION
         );
         if (confirm == JOptionPane.YES_OPTION) {
-            int insertados = org.tusalud.config.DatabaseInitializer.sembrarDatosDemo(usuario.getIdUsuario());
-            JOptionPane.showMessageDialog(this, "Se cargaron " + insertados + " registros de prueba exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            int insertados = org.tusalud.config.DatabaseInitializer.sembrarDatosDemo(usuario.getIdUsuario(), usuario.getPerfilMedico());
+            JOptionPane.showMessageDialog(this, "Se cargaron " + insertados + " registros de prueba adaptados a tu perfil.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             recargarDatos();
         }
     }

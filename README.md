@@ -258,12 +258,14 @@ REC_PREV --> DASHBOARD
 REC_GEN --> DASHBOARD
 ```
 
-### Configuración resultante del perfil:
-* **Hipertensión diagnosticada:** Prioriza el control de frecuencia cardíaca (bpm) en reposo, masa corporal e IMC, registrando además el seguimiento de su medicación antihipertensiva.
-* **Diabetes diagnosticada:** Prioriza el monitoreo continuo de niveles de glucosa en sangre (mg/dL) y balance ponderal.
-* **Hipertensión y Diabetes:** Evaluación cardio-metabólica integral con seguimiento simultáneo de glucosa, pulsaciones y peso.
-* **Control preventivo de ambas:** Pensado para personas con antecedentes familiares o chequeos médicos periódicos, fomentando el registro preventivo para detección temprana.
-* **Control preventivo general:** Orientado al bienestar integral, estado físico, cálculo de IMC y control del ritmo cardíaco.
+### Configuración resultante del perfil y restricción de variables biométricas:
+
+El sistema garantiza que **cada usuario únicamente pueda registrar y modificar las variables biométricas que influyen en las opciones que seleccionó en su Cuestionario Médico Inicial**, bloqueando automáticamente los campos no pertinentes tanto al ingresar nuevas mediciones como al editarlas en el historial:
+
+* **Diabetes diagnosticada:** Solo permite registrar y modificar **Glucosa en sangre (mg/dL)** y control metabólico de **Peso corporal e IMC**. Si el usuario selecciona monitoreo exclusivo de glucemia, los campos de peso y altura también se bloquean. La **Frecuencia Cardíaca (bpm) queda deshabilitada** por no influir en el control directo de la diabetes.
+* **Hipertensión diagnosticada:** Solo permite registrar y modificar **Frecuencia Cardíaca (bpm)** y control de sobrepeso (**Peso corporal e IMC**). La **Glucosa en sangre queda deshabilitada** por no influir en la salud cardiovascular primaria.
+* **Hipertensión y Diabetes / Preventivo Dual:** Permite el registro integral de las cuatro variables biométricas para un seguimiento clínico cruzado cardio-metabólico.
+* **Control preventivo general:** Permite peso, altura y pulsaciones según el objetivo físico elegido (descenso de peso, rendimiento deportivo o salud general), bloqueando la glucosa al tratarse de un usuario sin afección metabólica.
 
 ---
 

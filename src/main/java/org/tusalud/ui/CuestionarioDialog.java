@@ -4,6 +4,7 @@ import org.tusalud.model.Recomendacion;
 import org.tusalud.model.Usuario;
 import org.tusalud.repository.RecomendacionDAO;
 import org.tusalud.repository.UsuarioDAO;
+import org.tusalud.service.PerfilMedicoService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,6 +32,7 @@ public class CuestionarioDialog extends JDialog {
     private JComboBox<String> cbMedicaHipertension;
     private JComboBox<String> cbFrecuenciaHipertension;
     private JComboBox<String> cbRegistraHipertension;
+    private JComboBox<String> cbAlcanceHipertension;
 
     // Preguntas Diabetes
     private JComboBox<String> cbTipoDiabetes;
@@ -40,6 +42,7 @@ public class CuestionarioDialog extends JDialog {
     private JComboBox<String> cbPautaDiabetes;
     private JComboBox<String> cbFrecuenciaDiabetes;
     private JComboBox<String> cbRegistraDiabetes;
+    private JComboBox<String> cbAlcanceDiabetes;
 
     // Preguntas Preventivo Dual
     private JComboBox<String> cbMotivoPrev;
@@ -160,7 +163,7 @@ public class CuestionarioDialog extends JDialog {
     }
 
     private JPanel crearPanelHipertension() {
-        JPanel panel = new JPanel(new GridLayout(6, 2, 8, 8));
+        JPanel panel = new JPanel(new GridLayout(7, 2, 8, 8));
         panel.setBorder(BorderFactory.createTitledBorder("Módulo de Hipertensión"));
 
         cbTipoHipertension = new JComboBox<>(new String[]{"Hipertensión primaria o esencial", "Hipertensión secundaria", "No lo sé"});
@@ -169,6 +172,7 @@ public class CuestionarioDialog extends JDialog {
         cbMedicaHipertension = new JComboBox<>(new String[]{"Sí", "No", "A veces"});
         cbFrecuenciaHipertension = new JComboBox<>(new String[]{"Todos los días", "Varias veces por semana", "Una vez por semana", "Algunas veces al mes", "Solo con síntomas", "Casi nunca"});
         cbRegistraHipertension = new JComboBox<>(new String[]{"Sí, diariamente", "Sí, algunas veces", "No"});
+        cbAlcanceHipertension = new JComboBox<>(new String[]{"Frecuencia Cardíaca y Control de Peso / IMC (Recomendado)", "Únicamente Frecuencia Cardíaca (Pulsaciones)"});
 
         panel.add(new JLabel("Tipo de hipertensión:"));
         panel.add(cbTipoHipertension);
@@ -182,12 +186,14 @@ public class CuestionarioDialog extends JDialog {
         panel.add(cbFrecuenciaHipertension);
         panel.add(new JLabel("¿Registras tus valores?:"));
         panel.add(cbRegistraHipertension);
+        panel.add(new JLabel("Variables que deseas registrar:"));
+        panel.add(cbAlcanceHipertension);
 
         return panel;
     }
 
     private JPanel crearPanelDiabetes() {
-        JPanel panel = new JPanel(new GridLayout(7, 2, 8, 8));
+        JPanel panel = new JPanel(new GridLayout(8, 2, 8, 8));
         panel.setBorder(BorderFactory.createTitledBorder("Módulo de Diabetes"));
 
         cbTipoDiabetes = new JComboBox<>(new String[]{"Tipo 1", "Tipo 2", "Gestacional", "Otro", "No lo sé"});
@@ -197,6 +203,7 @@ public class CuestionarioDialog extends JDialog {
         cbPautaDiabetes = new JComboBox<>(new String[]{"Sí, estrictamente", "No", "A veces", "No tengo pauta"});
         cbFrecuenciaDiabetes = new JComboBox<>(new String[]{"Varias veces al día", "Una vez al día", "Varias veces por semana", "Algunas veces al mes", "Solo si me siento mal", "Casi nunca"});
         cbRegistraDiabetes = new JComboBox<>(new String[]{"Sí, diariamente", "Sí, algunas veces", "No"});
+        cbAlcanceDiabetes = new JComboBox<>(new String[]{"Glucosa en Sangre y Control de Peso / IMC (Recomendado)", "Únicamente Glucosa en Sangre"});
 
         panel.add(new JLabel("Tipo de diabetes:"));
         panel.add(cbTipoDiabetes);
@@ -212,6 +219,8 @@ public class CuestionarioDialog extends JDialog {
         panel.add(cbFrecuenciaDiabetes);
         panel.add(new JLabel("¿Registras tus valores?:"));
         panel.add(cbRegistraDiabetes);
+        panel.add(new JLabel("Variables que deseas registrar:"));
+        panel.add(cbAlcanceDiabetes);
 
         return panel;
     }
@@ -271,34 +280,47 @@ public class CuestionarioDialog extends JDialog {
         List<String> consejos = new ArrayList<>();
 
         if (rbHipertension.isSelected()) {
-            perfilNombre = "HIPERTENSION";
-            metricas = "• Frecuencia Cardíaca (bpm)\n• Peso Corporal (kg) e IMC";
+            boolean soloFC = "Únicamente Frecuencia Cardíaca (Pulsaciones)".equals(cbAlcanceHipertension.getSelectedItem());
+            perfilNombre = soloFC ? PerfilMedicoService.PERFIL_HIPERTENSION_SOLO_FC : PerfilMedicoService.PERFIL_HIPERTENSION;
+            metricas = soloFC ? "• Frecuencia Cardíaca (bpm)" : "• Frecuencia Cardíaca (bpm)\n• Peso Corporal (kg) e IMC";
             consejos.add("Monitorea tu frecuencia cardíaca matutina en reposo y mantén un registro constante.");
             if ("Medicamentos antihipertensivos".equals(cbControlHipertension.getSelectedItem()) || "Tratamiento combinado".equals(cbControlHipertension.getSelectedItem())) {
                 consejos.add("Recuerda la toma puntual de tu medicación según la indicación de tu médico.");
             }
         } else if (rbDiabetes.isSelected()) {
-            perfilNombre = "DIABETES";
-            metricas = "• Glucosa en Sangre (mg/dL)\n• Peso Corporal (kg) e IMC";
+            boolean soloGlucosa = "Únicamente Glucosa en Sangre".equals(cbAlcanceDiabetes.getSelectedItem());
+            perfilNombre = soloGlucosa ? PerfilMedicoService.PERFIL_DIABETES_SOLO_GLUCOSA : PerfilMedicoService.PERFIL_DIABETES;
+            metricas = soloGlucosa ? "• Glucosa en Sangre (mg/dL)" : "• Glucosa en Sangre (mg/dL)\n• Peso Corporal (kg) e IMC";
             consejos.add("Registra tus niveles de glucosa en ayunas y postprandial para un mejor control metabólico.");
             if ("Insulina".equals(cbControlDiabetes.getSelectedItem())) {
                 consejos.add("Lleva control estricto de las dosis de insulina y horarios de ingesta.");
             }
         } else if (rbAmbas.isSelected()) {
-            perfilNombre = "DUAL_DIAGNOSTICADO";
+            perfilNombre = PerfilMedicoService.PERFIL_DUAL;
             metricas = "• Glucosa en Sangre (mg/dL)\n• Frecuencia Cardíaca (bpm)\n• Peso Corporal (kg) e IMC";
             consejos.add("Tu perfil integral requiere un seguimiento coordinado de glucosa en sangre y salud cardiovascular.");
             consejos.add("Evita sal refinada y azúcares simples; realiza actividad física aeróbica moderada.");
         } else if (rbPrevAmbas.isSelected()) {
-            perfilNombre = "PREVENTIVO_DUAL";
+            perfilNombre = PerfilMedicoService.PERFIL_PREVENTIVO_DUAL;
             metricas = "• Glucosa en Sangre (mg/dL)\n• Frecuencia Cardíaca (bpm)\n• Peso e IMC";
             consejos.add("Monitoreo preventivo activo por antecedentes o factores de riesgo.");
             consejos.add("Un chequeo quincenal o mensual de glucosa y frecuencia cardíaca ayuda a la detección temprana.");
         } else {
-            perfilNombre = "BIENESTAR_GENERAL";
-            metricas = "• Peso Corporal (kg) e IMC\n• Frecuencia Cardíaca (bpm)";
-            consejos.add("Mantén el registro periódico de tu peso y altura para evaluar la evolución del IMC.");
-            consejos.add("Monitorea tus pulsaciones antes y después de hacer ejercicio.");
+            String obj = (String) cbObjetivoGeneral.getSelectedItem();
+            if ("Control de peso corporal y evolución de IMC".equals(obj)) {
+                perfilNombre = PerfilMedicoService.PERFIL_BIENESTAR_PESO;
+                metricas = "• Peso Corporal (kg)\n• Altura (m) e IMC";
+                consejos.add("Registra semanalmente tu peso corporal para observar la tendencia sin obsesionarte con fluctuaciones diarias.");
+            } else if ("Monitoreo de actividad física y frecuencia cardíaca".equals(obj)) {
+                perfilNombre = PerfilMedicoService.PERFIL_BIENESTAR_CARDIO;
+                metricas = "• Frecuencia Cardíaca (bpm)\n• Peso y Condición Física";
+                consejos.add("Monitorea tu pulso basal al despertar para medir tu adaptación cardiovascular al entrenamiento.");
+            } else {
+                perfilNombre = PerfilMedicoService.PERFIL_BIENESTAR_GENERAL;
+                metricas = "• Peso Corporal (kg) e IMC\n• Frecuencia Cardíaca (bpm)";
+                consejos.add("Mantén el registro periódico de tu peso y altura para evaluar la evolución del IMC.");
+                consejos.add("Monitorea tus pulsaciones antes y después de hacer ejercicio.");
+            }
         }
 
         try {
@@ -313,9 +335,19 @@ public class CuestionarioDialog extends JDialog {
 
             StringBuilder msg = new StringBuilder();
             msg.append("¡Perfil de Salud configurado exitosamente!\n\n");
-            msg.append("📌 Categoría asignada: ").append(perfilNombre.replace('_', ' ')).append("\n\n");
-            msg.append("📊 Métricas clave recomendadas para tu seguimiento:\n").append(metricas).append("\n\n");
-            msg.append("Tu panel principal ha sido configurado según tus respuestas.");
+            msg.append("📌 Categoría asignada: ").append(PerfilMedicoService.getNombreLegible(perfilNombre)).append("\n\n");
+            msg.append("✅ Variables biométricas habilitadas para registrar:\n");
+            for (String m : PerfilMedicoService.getMetricasPermitidas(perfilNombre)) {
+                msg.append("  • ").append(m).append("\n");
+            }
+            List<String> bloqueadas = PerfilMedicoService.getMetricasBloqueadas(perfilNombre);
+            if (!bloqueadas.isEmpty()) {
+                msg.append("\n🔒 Variables bloqueadas (no influyen en las opciones elegidas):\n");
+                for (String b : bloqueadas) {
+                    msg.append("  • ").append(b).append("\n");
+                }
+            }
+            msg.append("\nTu panel de nueva medición y formulario de edición han sido personalizados.");
 
             JOptionPane.showMessageDialog(this, msg.toString(), "Bienvenido a TuSalud", JOptionPane.INFORMATION_MESSAGE);
             this.completado = true;
