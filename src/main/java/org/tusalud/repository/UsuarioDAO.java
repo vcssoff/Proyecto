@@ -54,12 +54,25 @@ public class UsuarioDAO {
                         u.setFechaNacimiento(rs.getDate("fecha_nacimiento"));
                         u.setGenero(rs.getString("genero"));
                         u.setFechaRegistro(rs.getTimestamp("fecha_registro"));
+                        try {
+                            u.setPerfilMedico(rs.getString("perfil_medico"));
+                        } catch (Exception ignored) {}
                         return u;
                     }
                 }
             }
         }
         return null;
+    }
+
+    public boolean actualizarPerfilMedico(int idUsuario, String perfil) throws SQLException {
+        String sql = "UPDATE USUARIOS SET perfil_medico = ? WHERE id_usuario = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, perfil);
+            stmt.setInt(2, idUsuario);
+            return stmt.executeUpdate() > 0;
+        }
     }
 
     public boolean existeCorreo(String correo) throws SQLException {

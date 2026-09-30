@@ -52,6 +52,8 @@ public class MainFrame extends JFrame {
     private JTextArea txtRecomendaciones;
     private List<Recomendacion> recomendacionesActuales = new ArrayList<>();
 
+    private JLabel userLabel;
+
     public MainFrame(Usuario usuario) {
         this.usuario = usuario;
         setTitle("TuSalud - Monitoreo Biométrico | Usuario: " + usuario.getNombre());
@@ -59,7 +61,29 @@ public class MainFrame extends JFrame {
         setSize(980, 720);
         setLocationRelativeTo(null);
         initComponents();
+
+        // Si el usuario no tiene cuestionario completado, abrir diálogo de onboarding
+        if (usuario.getPerfilMedico() == null || usuario.getPerfilMedico().trim().isEmpty()) {
+            SwingUtilities.invokeLater(() -> {
+                CuestionarioDialog dialog = new CuestionarioDialog(this, usuario);
+                dialog.setVisible(true);
+                if (dialog.isCompletado()) {
+                    actualizarEtiquetaUsuario();
+                    recargarDatos();
+                }
+            });
+        }
+
         recargarDatos();
+    }
+
+    private void actualizarEtiquetaUsuario() {
+        String perfilStr = (usuario.getPerfilMedico() != null && !usuario.getPerfilMedico().isEmpty()) 
+                ? " | Perfil: " + usuario.getPerfilMedico().replace('_', ' ') 
+                : "";
+        if (userLabel != null) {
+            userLabel.setText("Sesión activa: " + usuario.getNombre() + " (" + usuario.getCorreo() + ")" + perfilStr);
+        }
     }
 
     private void initComponents() {
@@ -74,7 +98,10 @@ public class MainFrame extends JFrame {
         title.setFont(new Font("SansSerif", Font.BOLD, 18));
         title.setForeground(Color.WHITE);
 
-        JLabel userLabel = new JLabel("Sesión activa: " + usuario.getNombre() + " (" + usuario.getCorreo() + ")");
+        String perfilStr = (usuario.getPerfilMedico() != null && !usuario.getPerfilMedico().isEmpty()) 
+                ? " | Perfil: " + usuario.getPerfilMedico().replace('_', ' ') 
+                : "";
+        userLabel = new JLabel("Sesión activa: " + usuario.getNombre() + " (" + usuario.getCorreo() + ")" + perfilStr);
         userLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
         userLabel.setForeground(Color.WHITE);
 
@@ -177,6 +204,18 @@ public class MainFrame extends JFrame {
         btnDemo.setToolTipText("Carga 5 mediciones de prueba para evaluar gráficos y comparaciones");
         btnDemo.addActionListener(e -> cargarDatosDemo());
         btnPanel.add(btnDemo);
+
+        JButton btnTest = new JButton("🩺 Cuestionario");
+        btnTest.setToolTipText("Abrir o actualizar tu cuestionario médico inicial");
+        btnTest.addActionListener(e -> {
+            CuestionarioDialog dialog = new CuestionarioDialog(this, usuario);
+            dialog.setVisible(true);
+            if (dialog.isCompletado()) {
+                actualizarEtiquetaUsuario();
+                recargarDatos();
+            }
+        });
+        btnPanel.add(btnTest);
 
         panel.add(btnPanel, BorderLayout.SOUTH);
 

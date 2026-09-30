@@ -11,6 +11,7 @@ public class Usuario {
     private Date fechaNacimiento;
     private String genero;
     private Timestamp fechaRegistro;
+    private String perfilMedico;
 
     public Usuario() {}
 
@@ -43,4 +44,7 @@ public class Usuario {
 
     public Timestamp getFechaRegistro() { return fechaRegistro; }
     public void setFechaRegistro(Timestamp fechaRegistro) { this.fechaRegistro = fechaRegistro; }
+
+    public String getPerfilMedico() { return perfilMedico; }
+    public void setPerfilMedico(String perfilMedico) { this.perfilMedico = perfilMedico; }
 }

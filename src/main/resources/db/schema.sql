@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS USUARIOS (
     contrasenia_hash VARCHAR(255) NOT NULL,
     fecha_nacimiento DATE NOT NULL,
     genero VARCHAR(20) NOT NULL,
+    perfil_medico VARCHAR(100) NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

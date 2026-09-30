@@ -42,6 +42,10 @@ public class DatabaseInitializer {
                         stmt.execute(limpia);
                     }
                 }
+                // Si la tabla USUARIOS ya existía sin perfil_medico, añadir la columna
+                try {
+                    stmt.execute("ALTER TABLE USUARIOS ADD COLUMN perfil_medico VARCHAR(100) NULL;");
+                } catch (Exception ignored) {}
             }
             return true;
         } catch (Exception e) {
