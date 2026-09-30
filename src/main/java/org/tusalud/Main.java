@@ -22,16 +22,10 @@ public class Main {
         org.tusalud.config.DatabaseInitializer.inicializarTablas();
 
         SwingUtilities.invokeLater(() -> {
-            LoginDialog login = new LoginDialog(null);
+            LoginDialog login = new LoginDialog();
             login.setVisible(true);
-
-            Usuario usuario = login.getUsuarioAutenticado();
-            if (usuario != null) {
-                MainFrame mainFrame = new MainFrame(usuario);
-                mainFrame.setVisible(true);
-            } else {
-                System.exit(0);
-            }
+            login.toFront();
+            login.requestFocus();
         });
     }
 }

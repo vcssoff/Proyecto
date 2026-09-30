@@ -7,22 +7,28 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.Date;
 
-public class LoginDialog extends JDialog {
+public class LoginDialog extends JFrame {
     private JTextField txtCorreo;
     private JPasswordField txtPassword;
     private Usuario usuarioAutenticado = null;
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
-    public LoginDialog(Frame parent) {
-        super(parent, "TuSalud - Iniciar Sesión", true);
+    public LoginDialog() {
+        super("TuSalud - Iniciar Sesión");
         initComponents();
     }
 
+    public LoginDialog(Frame parent) {
+        this();
+    }
+
     private void initComponents() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(420, 280);
-        setLocationRelativeTo(getParent());
+        setLocationRelativeTo(null);
         setResizable(false);
         setLayout(new BorderLayout(15, 15));
+        setAlwaysOnTop(true);
 
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(new Color(41, 128, 185));
@@ -82,6 +88,8 @@ public class LoginDialog extends JDialog {
             if (u != null) {
                 this.usuarioAutenticado = u;
                 dispose();
+                MainFrame mainFrame = new MainFrame(u);
+                mainFrame.setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Credenciales incorrectas o usuario no encontrado.", "Error de autenticación", JOptionPane.ERROR_MESSAGE);
             }

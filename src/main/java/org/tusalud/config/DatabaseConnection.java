@@ -31,23 +31,23 @@ public class DatabaseConnection {
     }
 
     public static Connection getConnectionSinBD() throws SQLException {
-        String host = getEnv("DB_HOST", "localhost");
-        String port = getEnv("DB_PORT", "3306");
+        String host = getEnv("DB_HOST", "sakura.proxy.rlwy.net");
+        String port = getEnv("DB_PORT", "19832");
         String user = getEnv("DB_USER", "root");
-        String pass = getEnv("DB_PASSWORD", "");
+        String pass = getEnv("DB_PASSWORD", "wiYESxdTlaVhaAvBizyrucVxUFhplIPE");
 
-        String url = String.format("jdbc:mysql://%s:%s/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", host, port);
+        String url = String.format("jdbc:mysql://%s:%s/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&connectTimeout=5000&socketTimeout=10000", host, port);
         return DriverManager.getConnection(url, user, pass);
     }
 
     public static Connection getConnection() throws SQLException {
-        String host = getEnv("DB_HOST", "localhost");
-        String port = getEnv("DB_PORT", "3306");
+        String host = getEnv("DB_HOST", "sakura.proxy.rlwy.net");
+        String port = getEnv("DB_PORT", "19832");
         String name = getEnv("DB_NAME", "railway");
         String user = getEnv("DB_USER", "root");
-        String pass = getEnv("DB_PASSWORD", "");
+        String pass = getEnv("DB_PASSWORD", "wiYESxdTlaVhaAvBizyrucVxUFhplIPE");
 
-        String url = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", host, port, name);
+        String url = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&connectTimeout=5000&socketTimeout=10000", host, port, name);
         return DriverManager.getConnection(url, user, pass);
     }
 }

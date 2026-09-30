@@ -17,6 +17,11 @@ public class RegistroDialog extends JDialog {
     private String correoRegistrado = "";
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
+    public RegistroDialog(Frame parent) {
+        super(parent, "TuSalud - Crear Cuenta", true);
+        initComponents();
+    }
+
     public RegistroDialog(Dialog parent) {
         super(parent, "TuSalud - Crear Cuenta", true);
         initComponents();

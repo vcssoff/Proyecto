@@ -8,6 +8,7 @@ classDiagram
         -String contraseña
         -Date fechaNacimiento
         -String genero
+        -String perfilMedico
     }
 
     class Medicion {
@@ -40,6 +41,15 @@ classDiagram
         +compararMediciones(Medicion medicion1, Medicion medicion2)
     }
 
+    class PerfilMedicoService {
+        +puedeEditarPeso(String perfil) boolean
+        +puedeEditarAltura(String perfil) boolean
+        +puedeEditarFrecuencia(String perfil) boolean
+        +puedeEditarGlucosa(String perfil) boolean
+        +sanitizarMedicion(Medicion medicion, String perfil) void
+        +getNombreLegible(String perfil) String
+    }
+
     class ComparacionBiometrica {
         -double diferenciaPeso
         -double diferenciaIMC
@@ -50,6 +60,7 @@ classDiagram
     class UsuarioDAO {
         +registrar(Usuario usuario)
         +iniciarSesion(String correo, String contraseña)
+        +actualizarPerfilMedico(int idUsuario, String perfil)
     }
 
     class MedicionDAO {
@@ -75,6 +86,9 @@ classDiagram
     AnalisisService ..> Medicion : analiza
     AnalisisService ..> Recomendacion : genera
     AnalisisService ..> ComparacionBiometrica : genera
+
+    PerfilMedicoService ..> Usuario : valida perfil de
+    PerfilMedicoService ..> Medicion : filtra y sanitiza
 ```
 ---
 
@@ -131,19 +145,22 @@ classDiagram
 ##### Flujo principal
 
 1. El usuario selecciona la opción para registrar una medición.
-2. El sistema solicita los datos disponibles.
-3. El usuario introduce sus mediciones.
-4. El sistema valida los datos.
+2. El sistema consulta el perfil médico del usuario y habilita únicamente los campos relevantes (bloqueando métricas no contempladas).
+3. El usuario introduce sus mediciones en los campos habilitados.
+4. El sistema valida y sanitiza los datos según el perfil activo.
 5. El sistema guarda las mediciones junto con la fecha.
 6. El sistema confirma el registro.
+
+##### Regla de Negocio (Restricción por Perfil)
+* Los campos de entrada se ajustan a la condición seleccionada en el Cuestionario Inicial (p. ej., control exclusivo de Diabetes habilita solo Glucosa; control de Hipertensión habilita Frecuencia Cardíaca).
+* Los campos bloqueados permanecen deshabilitados con mensaje explicativo y no se persisten en la base de datos.
 
 ##### Datos que se pueden registrar
 
 * Peso.
 * Altura.
-* Edad.
 * Frecuencia cardíaca.
-* Otros datos definidos por el proyecto.
+* Glucosa en sangre.
 
 
 
@@ -156,15 +173,18 @@ classDiagram
 #### Flujo principal
 
 1. El usuario selecciona un registro anterior.
-2. El sistema muestra los datos registrados.
-3. El usuario modifica la información.
-4. El sistema valida los nuevos datos.
+2. El sistema muestra los datos registrados, bloqueando los campos que no correspondan a su perfil médico actual.
+3. El usuario modifica la información permitida.
+4. El sistema valida y sanitiza los nuevos datos.
 5. El sistema guarda los cambios.
 6. El sistema confirma la actualización.
 
 #### Flujo alternativo
 
 * Si los nuevos datos no son válidos, el sistema informa al usuario y solicita corregirlos.
+
+#### Regla de Negocio
+* Al editar, solo se permite alterar las métricas autorizadas por el perfil médico vigente del usuario; los demás valores se conservan o visualizan como solo lectura.
 
 
 
@@ -256,3 +276,24 @@ Las recomendaciones proporcionadas por el sistema son de carácter general y no 
 3. El sistema analiza la evolución de los datos.
 4. El sistema genera un resumen.
 5. El sistema muestra estadísticas y gráficos relacionados con el progreso.
+
+### CU11 - Completar Cuestionario Médico Inicial
+
+**Actor:** Usuario
+
+**Objetivo:** Determinar la condición de salud y el alcance de las métricas biométricas a monitorear.
+
+#### Precondición
+* El usuario ha iniciado sesión y no posee un perfil médico configurado, o solicita modificar su condición de seguimiento.
+
+#### Flujo principal
+1. El sistema presenta el cuestionario médico inicial con las opciones de control:
+   - Control general / Preventivo.
+   - Diabetes (opción de solo glucosa o glucosa + peso/IMC).
+   - Hipertensión / Salud Cardiovascular (solo frecuencia cardíaca o integral con peso).
+   - Monitoreo Integral Combinado.
+2. El usuario selecciona la condición y el alcance específico de seguimiento.
+3. El sistema valida la selección y asigna el identificador de perfil correspondiente.
+4. El sistema persiste el perfil médico asociado al usuario en la base de datos.
+5. El sistema actualiza la interfaz adaptando los formularios y habilitando únicamente las métricas pertinentes.
+
